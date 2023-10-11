@@ -1,0 +1,22 @@
+{
+  "name": "@sota/util",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "devDependencies": {},
+  "scripts": {
+    "build": "tsc --build --pretty",
+    "watch": "tsc -w --pretty",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jim-y/sota-auth.git"
+  },
+  "author": "Attila Kling",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jim-y/sota-auth/issues"
+  },
+  "homepage": "https://github.com/jim-y/sota-auth#readme"
+}
