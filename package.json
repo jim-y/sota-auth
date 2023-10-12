@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/jim-y/sota-auth/issues"
   },
-  "homepage": "https://github.com/jim-y/sota-auth#readme"
+  "homepage": "https://github.com/jim-y/sota-auth#readme",
+  "dependencies": {
+    "prettier": "^3.0.3"
+  }
 }

@@ -1,8 +1,8 @@
-import { Module } from "@sota/util";
-import AuthModule from "./auth/module";
+import { Module } from '@sota/util';
+import AuthModule from './auth/module';
 
 @Module({
-  modules: [AuthModule]
+    modules: [AuthModule],
 })
 class AppModule {}
 

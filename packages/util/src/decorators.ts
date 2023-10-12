@@ -1,19 +1,72 @@
-import {
-    _add,
-    _addToRoute,
-    _httpMethodDecoratorFactory,
-    _processModuleControllers,
-    _processModuleServices,
-    _processSubModules,
-    prefixSymbol,
-    aliasSymbol,
-    depsSymbol,
-    moduleRoutesSymbol,
-    injectorConfigSymbol,
-    moduleMetaSymbol,
-    singletonSymbol
-} from './decorator-helpers';
+import { join } from 'path';
+import { _httpMethodDecoratorFactory, getRoutesForController } from './decorator-helpers';
+import { controllerPrefix, aliasSymbol, depsSymbol, moduleMetaSymbol, middlewaresSymbol } from './decorator-symbols';
 import type { ModuleMeta, ModuleOptions } from './decorator-helpers';
+
+type Entry = {
+    type: 'class' | 'constant';
+    tags?: string[];
+    value: any;
+};
+export class Container {
+    private static _instance: Container;
+
+    config: Record<string, Entry> = {};
+
+    public register(injectionToken, entry: Entry) {
+        if (!this.config[injectionToken]) {
+            this.config[injectionToken] = {
+                ...entry,
+                tags: entry.tags ?? [],
+            };
+        }
+    }
+
+    public get(token) {
+        const injectionToken = token.name ?? token;
+        const entry = this.config[injectionToken];
+        if (entry.type === 'class') {
+            let instance = new entry.value();
+            const dependencies = entry.value[Symbol.metadata][depsSymbol];
+            if (dependencies && Object.keys(dependencies).length > 0) {
+                for (const token in dependencies) {
+                    const field = dependencies[token];
+                    instance[field] = this.get(token);
+                }
+            }
+            return instance;
+        } else if (entry.type === 'constant') {
+            return entry.value;
+        }
+    }
+
+    public getAllByTagNames(tag: string | string[]) {
+        const tagsToFind = typeof tag === 'string' ? [tag] : tag;
+        const entries = [];
+        for (const token in this.config) {
+            const entry = this.config[token];
+            if (tagsToFind.every((tagToFind) => entry.tags.indexOf(tagToFind) > -1)) {
+                entries.push(this.get(token));
+            }
+        }
+        return entries;
+    }
+
+    public attachTags(token, tags: string[]) {
+        const entry = this.config[token.name ?? token];
+        if (!tags || !entry) throw new Error('missing tags or missing entry');
+        entry.tags = Array.from(new Set([...entry.tags, ...tags]));
+    }
+
+    static get instance() {
+        if (!this._instance) {
+            this._instance = new Container();
+        }
+        return this._instance;
+    }
+}
+
+export const container = Container.instance;
 
 // @ts-ignore
 Symbol.metadata ??= Symbol('Symbol.metadata');
@@ -24,9 +77,26 @@ Symbol.metadata ??= Symbol('Symbol.metadata');
  *  @Controller('cat')
  *  class CatController {}
  */
-export function Controller(prefix: string = '') {
+export function Controller(prefix: string = '', tag: string | string[] = []) {
+    const tags = typeof tag === 'string' ? [tag] : tag;
     return function (constructor: Function, context: any) {
-        context.metadata[prefixSymbol] = prefix;
+        context.metadata[controllerPrefix] = prefix;
+        container.register(context.name, {
+            type: 'class',
+            tags: tags.concat(['controller']),
+            value: constructor,
+        });
+    };
+}
+
+export function Injectable(tag: string | string[] = []) {
+    const tags = typeof tag === 'string' ? [tag] : tag;
+    return function (constructor: Function, context: any) {
+        container.register(context.name, {
+            type: 'class',
+            tags,
+            value: constructor,
+        });
     };
 }
 
@@ -56,6 +126,10 @@ export function Put(path: string = '') {
     return _httpMethodDecoratorFactory(path, 'put');
 }
 
+export class AbstractModule {
+    public static routes: any[] = [];
+}
+
 /**
  * ClassDecorator
  * - defines a module. A module constructs route definitions and defines singletons for the shared injector
@@ -75,50 +149,94 @@ export function Module(moduleOptions: ModuleOptions) {
     return function (constructor: Function, context) {
         const { prefix, inheritPrefix, controllers, services, modules } = moduleOptions;
 
-        const moduleRoutes = [];
-        const injector = {};
-
         if (controllers) {
-            _processModuleControllers(controllers, moduleRoutes, injector, prefix);
+            for (const ctrl of controllers) {
+                container.attachTags(ctrl.name, [context.name]);
+            }
         }
 
-        if (services) {
-            _processModuleServices(services, injector);
-        }
-
-        if (modules) {
-            _processSubModules(modules, moduleRoutes, injector, prefix);
-        }
-
-        context.metadata[moduleRoutesSymbol] = moduleRoutes;
-        context.metadata[injectorConfigSymbol] = injector;
         context.metadata[moduleMetaSymbol] = {
             prefix,
-            inheritPrefix
+            inheritPrefix,
         } as ModuleMeta;
 
         Object.defineProperties(constructor, {
-            singletons: {
-                enumerable: false,
+            __modules: {
+                enumerable: true,
                 configurable: false,
                 get() {
-                    return context.metadata[injectorConfigSymbol];
-                }
+                    return modules;
+                },
+            },
+            modules: {
+                enumerable: true,
+                configurable: false,
+                get() {
+                    let allModules = [];
+                    if (modules) {
+                        for (const module of this.__modules) {
+                            const subModules = module.modules;
+                            allModules.push(...subModules);
+                            allModules.push(module);
+                        }
+                    }
+                    return allModules;
+                },
+            },
+            __controllers: {
+                enumerable: true,
+                configurable: false,
+                get() {
+                    return container.getAllByTagNames(['controller', context.name]);
+                },
             },
             controllers: {
-                enumerable: false,
+                enumerable: true,
                 configurable: false,
                 get() {
-                    return context.metadata[injectorConfigSymbol];
-                }
+                    return container.getAllByTagNames(['controller']);
+                },
+            },
+            __routes: {
+                enumerable: true,
+                configurable: false,
+                get() {
+                    const ownRoutes = [];
+                    if (this.__controllers) {
+                        for (const moduleController of this.__controllers) {
+                            const { prefix } = this[Symbol.metadata][moduleMetaSymbol];
+                            const controllerRoutes = getRoutesForController(moduleController, prefix);
+                            ownRoutes.push(...controllerRoutes);
+                        }
+                    }
+                    return ownRoutes;
+                },
             },
             routes: {
-                enumerable: false,
+                enumerable: true,
                 configurable: false,
                 get() {
-                    return context.metadata[moduleRoutesSymbol];
-                }
-            }
+                    const routes = [];
+                    if (this.__modules) {
+                        for (const module of this.__modules) {
+                            const { inheritPrefix, prefix: subModulePrefix } =
+                                module[Symbol.metadata][moduleMetaSymbol];
+                            const { prefix: parentModulePrefix } = this[Symbol.metadata][moduleMetaSymbol];
+                            if (inheritPrefix) {
+                                module[Symbol.metadata][moduleMetaSymbol].prefix = join(
+                                    parentModulePrefix ?? '',
+                                    subModulePrefix ?? ''
+                                );
+                            }
+                            routes.push(...module.routes);
+                        }
+                    }
+                    if (this.__routes) {
+                        routes.push(...this.__routes);
+                    }
+                    return routes;
+                },
+            },
         });
     };
 }
@@ -131,17 +249,29 @@ export function Module(moduleOptions: ModuleOptions) {
  *      @Inject('HTTP') http: BackendHttp;
  *  }
  */
-export function Inject(name: string) {
+export function Inject(token: any) {
     return function (value, context) {
         if (context.kind !== 'field') {
             throw new Error('The Inject() decorator must be used as a class field decorator');
         }
 
+        const injectionToken = token.name ?? token;
+
         if (!context.metadata[depsSymbol]) {
             context.metadata[depsSymbol] = {};
         }
 
-        context.metadata[depsSymbol][name] = context.name;
+        context.metadata[depsSymbol][injectionToken] = context.name;
         return value;
+    };
+}
+
+export function Middlewares(middlewareFunctions: Function[]) {
+    return function (originalMethod: any, context) {
+        if (!context.metadata[middlewaresSymbol]) {
+            context.metadata[middlewaresSymbol] = {};
+        }
+        context.metadata[middlewaresSymbol][context.name] = middlewareFunctions;
+        return originalMethod;
     };
 }
