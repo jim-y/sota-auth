@@ -1,0 +1,57 @@
+.registerPage {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.registerForm {
+    width: 400px;
+
+    & > fieldset {
+        padding: 16px 32px;
+        border: 1px solid lightgrey;
+
+        & > legend {
+            color: #535bf2;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-align: center;
+            padding: 0 12px;
+        }
+
+        & > * {
+            margin-bottom: 16px;
+        }
+    }
+
+    & input {
+        height: 32px;
+        border: 1px solid lightgrey;
+        border-image: none;
+        padding: 2px 4px;
+        line-height: 30px;
+        font-size: 18px;
+    }
+
+    & label {
+        text-align: start;
+        margin-bottom: 2px;
+        font-size: 0.9em;
+    }
+
+    .inputContainer {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .requiredLabel::after {
+        content: ' *';
+        color: red;
+    }
+
+    & button[type="submit"] {
+        width: 100%;
+    }
+}

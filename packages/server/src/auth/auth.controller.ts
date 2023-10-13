@@ -8,8 +8,10 @@ export class AuthController {
     @Inject(AuthService) private authService: AuthService;
 
     @Get('session')
+    @Middlewares([sessionCheck])
     async getSession(req: Request, res: Response) {
-        res.json(this.authService.doLogin());
+        const session = req.session.user;
+        res.json(session);
     }
 
     @Post('login')
@@ -17,7 +19,7 @@ export class AuthController {
         const email = req.body.email;
         const password = req.body.password;
         req.session.user = { email };
-        res.sendStatus(200);
+        res.redirect('/');
     }
 
     @Post('logout')

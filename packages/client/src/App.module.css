@@ -1,0 +1,13 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.userContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin: 12px 8px;
+}

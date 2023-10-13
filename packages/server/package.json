@@ -21,6 +21,7 @@
   "homepage": "https://github.com/jim-y/sota-auth#readme",
   "dependencies": {
     "@types/express-session": "^1.17.8",
+    "bcrypt": "^5.1.1",
     "connect-redis": "^7.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
