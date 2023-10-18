@@ -1,28 +1,30 @@
 {
-  "name": "@sota/main",
-  "version": "1.0.0",
-  "description": "",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "watch": "npm run watch --workspaces --if-present",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jim-y/sota-auth.git"
-  },
-  "keywords": [],
-  "author": "Attila Kling",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jim-y/sota-auth/issues"
-  },
-  "homepage": "https://github.com/jim-y/sota-auth#readme",
-  "dependencies": {
-    "prettier": "^3.0.3"
-  }
+    "name": "@sota/main",
+    "version": "1.0.0",
+    "description": "",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "tsc --build ./tsconfig.json",
+        "postbuild": "cp packages/server/package.runtime.json packages/server/dist/package.json",
+        "watch": "npm run build -- --watch",
+        "start": "npm start --workspaces --if-present",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jim-y/sota-auth.git"
+    },
+    "keywords": [],
+    "author": "Attila Kling",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jim-y/sota-auth/issues"
+    },
+    "homepage": "https://github.com/jim-y/sota-auth#readme",
+    "dependencies": {
+        "prettier": "^3.0.3"
+    }
 }

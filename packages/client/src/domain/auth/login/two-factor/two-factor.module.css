@@ -1,0 +1,17 @@
+.twoFactorPage {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.twoFactorContent {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.twoFactorContent button {
+    width: 100%;
+}

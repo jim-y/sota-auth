@@ -4,9 +4,10 @@ import { controllerPrefix, aliasSymbol, depsSymbol, moduleMetaSymbol, middleware
 import type { ModuleMeta, ModuleOptions } from './decorator-helpers';
 
 type Entry = {
-    type: 'class' | 'constant';
+    type: 'class' | 'constant' | 'singleton' | 'model';
     tags?: string[];
     value: any;
+    instantiated?: boolean;
 };
 export class Container {
     private static _instance: Container;
@@ -35,8 +36,20 @@ export class Container {
                 }
             }
             return instance;
-        } else if (entry.type === 'constant') {
+        } else if (entry.type === 'constant' || entry.type === 'model') {
             return entry.value;
+        } else if (entry.type === 'singleton') {
+            if (entry.instantiated) return entry.value.instance;
+            let instance = entry.value.instance;
+            const dependencies = entry.value[Symbol.metadata][depsSymbol];
+            if (dependencies && Object.keys(dependencies).length > 0) {
+                for (const token in dependencies) {
+                    const field = dependencies[token];
+                    instance[field] = this.get(token);
+                }
+            }
+            entry.instantiated = true;
+            return instance;
         }
     }
 
@@ -94,6 +107,31 @@ export function Injectable(tag: string | string[] = []) {
     return function (constructor: Function, context: any) {
         container.register(context.name, {
             type: 'class',
+            tags,
+            value: constructor,
+        });
+    };
+}
+
+export function Model(constructor: Function, context: any) {
+    container.register(context.name, {
+        type: 'model',
+        tags: ['model'],
+        value: constructor,
+    });
+}
+
+export function Singleton(tag: string | string[] = []) {
+    const tags = typeof tag === 'string' ? [tag] : tag;
+    return function (constructor: Function, context: any) {
+        var values = Object.getOwnPropertyNames(constructor);
+
+        if (values.findIndex((prop) => prop === 'instance') < 0) {
+            throw new Error('A @Singleton() decorated class is supposed to have a static instance() method');
+        }
+
+        container.register(context.name, {
+            type: 'singleton',
             tags,
             value: constructor,
         });

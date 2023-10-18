@@ -1,0 +1,9 @@
+{
+    "imports": {
+        "#types/*": "./types/*.js",
+        "#cache/*": "./cache/*.js",
+        "#models/*": "./models/*.js",
+        "#services/*": "./services/*.js",
+        "#middlewares/*": "./middlewares/*.js"
+    }
+}

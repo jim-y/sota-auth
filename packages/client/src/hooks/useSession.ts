@@ -7,6 +7,7 @@ type User = {
 export function useSession() {
     const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchSession = async () => {
@@ -21,12 +22,16 @@ export function useSession() {
             } catch (err) {
                 console.error(err);
                 navigate('/auth/login');
+            } finally {
+                setIsLoading(false);
             }
         };
+        setIsLoading(true);
         void fetchSession();
-    }, []);
+    }, [navigate]);
 
     return {
         user,
+        isLoading,
     };
 }

@@ -1,36 +1,41 @@
 {
-  "name": "@sota/server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "tsc --build",
-    "watch": "tsc -w --pretty",
-    "start": "node dist/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jim-y/sota-auth.git"
-  },
-  "author": "Attila Kling",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jim-y/sota-auth/issues"
-  },
-  "homepage": "https://github.com/jim-y/sota-auth#readme",
-  "dependencies": {
-    "@types/express-session": "^1.17.8",
-    "bcrypt": "^5.1.1",
-    "connect-redis": "^7.1.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-session": "^1.17.3",
-    "redis": "^4.6.10"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.19",
-    "typescript": "^5.2.2"
-  }
+    "name": "@sota/server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc --build",
+        "watch": "tsc --build --watch",
+        "start": "node dist/main.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jim-y/sota-auth.git"
+    },
+    "author": "Attila Kling",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jim-y/sota-auth/issues"
+    },
+    "homepage": "https://github.com/jim-y/sota-auth#readme",
+    "dependencies": {
+        "@simplewebauthn/server": "^8.3.2",
+        "@types/express-session": "^1.17.8",
+        "bcrypt": "^5.1.1",
+        "connect-redis": "^7.1.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-session": "^1.17.3",
+        "prettier": "^3.0.3",
+        "qrcode": "^1.5.3",
+        "redis": "^4.6.10",
+        "speakeasy": "^2.0.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.19",
+        "babel-plugin-module-resolver": "^5.0.0",
+        "typescript": "^5.2.2"
+    }
 }

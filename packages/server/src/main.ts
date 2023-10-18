@@ -1,21 +1,19 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import AppModule from './app.module';
 import RedisStore from 'connect-redis';
 import session from 'express-session';
-import { createClient } from 'redis';
+import '#cache/cache';
 import cors from 'cors';
-import { container } from '@sota/util';
+import { container } from '@sota/util/decorators';
+import { User } from '#types/user.type';
 
 export const middlewaresSymbol = Symbol.for('middlewares');
-
-type User = {
-    email: string;
-};
 
 declare module 'express-session' {
     interface SessionData {
         user: User;
+        login: any;
     }
 }
 
@@ -23,14 +21,11 @@ const app = express();
 const port = 3001;
 const router = express.Router();
 
-let redisClient = createClient({
-    database: 1,
-});
-redisClient.connect().catch(console.error);
+const redisClient = container.get('Cache');
 
 let redisStore = new RedisStore({
-    client: redisClient,
-    prefix: 'sota:',
+    client: redisClient.client,
+    prefix: 'session:',
 });
 
 app.use(
@@ -42,7 +37,16 @@ app.use(
     })
 );
 app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await next();
+    } catch (error) {
+        console.error(error);
+        res.sendStatus(500);
+    }
+});
 
 container.register('NODE_ENV', {
     type: 'constant',
@@ -50,6 +54,7 @@ container.register('NODE_ENV', {
 });
 
 const routes = AppModule['routes'];
+
 for (const route of routes) {
     const controller = container.get(route.controller);
     const middlewareFunctions = controller.constructor[Symbol.metadata][middlewaresSymbol]?.[route.action] ?? [];
@@ -63,4 +68,14 @@ app.use('/api', router);
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
+});
+
+process.on('SIGTERM', () => {
+    console.info('SIGTERM signal received.');
+    process.exit(0);
+});
+process.on('SIGINT', () => {
+    console.info('SIGINT signal received.');
+    redisClient.client.disconnect();
+    process.exit(0);
 });

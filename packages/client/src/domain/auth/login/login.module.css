@@ -10,40 +10,8 @@
     width: 300px;
     display: flex;
     flex-direction: column;
-
-    .registerLink {
-        display: inline-block;
-    }
 }
 
-.loginForm input {
-    height: 32px;
-    border: 1px solid lightgrey;
-    border-image: none;
-}
-
-.loginForm input {
-    padding: 2px 4px;
-    line-height: 30px;
-    font-size: 18px;
-}
-
-.loginForm > * {
-    margin-bottom: 16px;
-}
-
-.inputContainer {
-    display: flex;
-    flex-direction: column;
-}
-
-.loginForm label {
-    text-align: start;
-    margin-bottom: 2px;
-    font-size: 0.9em;
-}
-
-.loginForm footer {
-    display: flex;
-    justify-content: center;
+.loginForm button {
+    width: 100%;
 }

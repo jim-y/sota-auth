@@ -1,4 +1,4 @@
-import { Controller, Get, Inject } from '@sota/util';
+import { Controller, Get, Inject } from '@sota/util/decorators';
 import { SamlService } from './saml.service';
 
 @Controller('saml')

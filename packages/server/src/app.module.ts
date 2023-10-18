@@ -1,4 +1,4 @@
-import { Module } from '@sota/util';
+import { Module } from '@sota/util/decorators';
 import AuthModule from './auth/module';
 
 @Module({

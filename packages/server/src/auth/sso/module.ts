@@ -1,4 +1,4 @@
-import { Module } from '@sota/util';
+import { Module } from '@sota/util/decorators';
 
 import { SamlController } from './saml.controller';
 import { SamlService } from './saml.service';

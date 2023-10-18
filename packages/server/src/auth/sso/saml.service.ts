@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@sota/util';
+import { Inject, Injectable } from '@sota/util/decorators';
 
 @Injectable()
 export class SamlService {
